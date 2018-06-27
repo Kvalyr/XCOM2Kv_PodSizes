@@ -2,7 +2,6 @@
 
 Requires XCOM2 Community Highlander: https://steamcommunity.com/sharedfiles/filedetails/?id=1134256495
 If you experience crashes, double-check that the Community Highlander is installed.
-This might be compatible with the LW2 Highlander but I have only tested with the community highlander.
 
 
 This mod applies its affects AFTER .ini files have been loaded. It should not have ini conflicts with mods that add or remove Encounters/Pods.

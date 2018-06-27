@@ -31,9 +31,6 @@
     <Content Include="Src\Kv_PodSizes\Classes\Kv_Common.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_Common.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_UpdateArrays.uc">
       <SubType>Content</SubType>
     </Content>

@@ -5,8 +5,6 @@
 //  player creates a new campaign or loads a saved game.
 //  
 //---------------------------------------------------------------------------------------
-//  Copyright (c) 2016 Firaxis Games, Inc. All rights reserved.
-//---------------------------------------------------------------------------------------
 
 class X2DownloadableContentInfo_Kv_PodSizes extends X2DownloadableContentInfo;
 
