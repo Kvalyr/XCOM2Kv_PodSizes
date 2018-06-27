@@ -16,3 +16,5 @@ Comments in the file explain the purpose of each setting.
 Planned Features:
 * Adjust pod sizes by their EncounterID
 * Add/Remove ForceSpawnTemplateNames to Pods by EncounterID
+
+https://github.com/Kvalyr/XCOM2Kv_PodSizes
