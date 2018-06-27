@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Default" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Guid>c4ed559c-fd1c-4862-a62f-edc08614a434</Guid>
+    <Name>Kv_PodSizes</Name>
+    <Description>Kv_PodSizes</Description>
+    <SteamPublishID>0</SteamPublishID>
+    <AssemblyName>Kv_PodSizes</AssemblyName>
+    <RootNamespace>Kv_PodSizes</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Config\XComEditor.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Config\XComEngine.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Config\XComGame.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Config\XComKv_PodSizes.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Globals.uci">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ModPreview.jpg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ReadMe.txt" />
+    <Content Include="Src\Kv_PodSizes\Classes\Kv_Common.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_Common.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_UpdateArrays.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\Kv_PodSizes\Classes\X2DownloadableContentInfo_Kv_PodSizes.uc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Config" />
+    <Folder Include="Content" />
+    <Folder Include="Localization" />
+    <Folder Include="Src" />
+    <Folder Include="Src\Kv_PodSizes" />
+    <Folder Include="Src\Kv_PodSizes\Classes" />
+  </ItemGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
+</Project>
