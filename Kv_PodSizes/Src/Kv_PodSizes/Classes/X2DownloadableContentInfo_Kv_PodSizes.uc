@@ -25,6 +25,7 @@ static event InstallNewCampaign(XComGameState StartState)
 static event OnPostTemplatesCreated()
 {
 	local Kv_PS_UpdateArrays inst;
+	`KvCLog("KVPS: OnPostTemplatesCreated()");
 	inst = new class'Kv_PS_UpdateArrays' ;
 	inst.UpdateEncountersArray();
 }
