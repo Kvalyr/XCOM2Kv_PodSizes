@@ -165,9 +165,16 @@ static function CreatePodSizeMappingSliders(MCM_API_SettingsGroup group)
 
 
 function SaveButtonClicked(MCM_API_SettingsPage Page)
-{
+{	
+	local Kv_PS_UpdateArrays inst;
 	self.ConfigVersion = `MCM_CH_GetCompositeVersion();
     self.SaveConfig();
+	if(Page != none)
+	{
+		`KvCLog("KVPS: SaveButtonClicked(), Page!= none");
+		inst = new class'Kv_PS_UpdateArrays' ;
+		inst.UpdateEncountersArray();
+	}
 }
 
 function EnsureConfigExists()
