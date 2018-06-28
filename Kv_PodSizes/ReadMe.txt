@@ -3,7 +3,7 @@
 === Requirements ===
 * Requires WOTC.
 * Requires XCOM2 Community Highlander: https://steamcommunity.com/sharedfiles/filedetails/?id=1134256495
-* MCM Strongly Recommended: https://steamcommunity.com/sharedfiles/filedetails/?id=667104300
+* Requires MCM: https://steamcommunity.com/sharedfiles/filedetails/?id=667104300
 
 If you experience crashes, double-check that the Community Highlander is installed. This mod absolutely will not work without it.
 
@@ -19,17 +19,11 @@ If you experience crashes, double-check that the Community Highlander is install
 
 * This mod won't have any perceptible effect on your game unless you change some of its default values.
 
-* IMPORTANT: Quit to desktop and launch the game again after changing settings. (A future version will eliminate this)
-
-* If not using the MCM: Just use the MCM. 
-If you really insist: Adjust values in XComKv_PodSizes_Settings.ini (NOT _Defaults.ini) to your preference. 
-
-* IMPORTANT, Repeated: Quit to desktop and launch the game again after changing settings or they won't have any effect. (A future version will eliminate this)
+* If you get weird pods or weird spawning behaviour in general, go to the options menu and switch OFF "Update pods without Restarting (Experimental)"; then restart the game once.
+  * When this setting is off, you will need to restart the game client to make any settings changes for this mod take effect.
 
 === Known Issues: ===
 * PodSizeMappings in this mod's .ini currently have no effect. Feature will be restored later.
-
-* Game must be restarted for changes to settings to have any effect.
 
 === Planned Features: ===
 * Adjust pod sizes by their EncounterID

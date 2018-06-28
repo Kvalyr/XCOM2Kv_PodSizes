@@ -3,6 +3,8 @@ class Kv_PodSizes_Settings extends UIScreenListener config(Kv_PodSizes_Settings)
 var config float ENCOUNTER_MULTIPLIER;
 var config bool ENCOUNTER_MULTIPLIER_BEFORE;
 
+var config bool ALLOW_RUNTIME;
+
 var config bool IGNORE_SINGLE;
 var config bool IGNORE_FIXED;
 
@@ -36,7 +38,7 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 {
     // Build the settings UI
     local MCM_API_SettingsPage page;
-    local MCM_API_SettingsGroup group1, group2;
+    local MCM_API_SettingsGroup group1, group2, group3;
 
     LoadSavedSettings();
 
@@ -61,8 +63,9 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 	group2.AddCheckbox('AffectResistance', "Affect Resistance Pods", "Affect Pods that spawn for the Resistance team", AFFECT_RESISTANCE, AffectResistanceSaveHandler);	
 	group2.AddCheckbox('AffectXCOM', "Affect XCOM Pods", "Affect Pods that spawn for XCOM", AFFECT_XCOM, AffectXcomSaveHandler);	
 	
-	//CreatePodSizeMappingSliders(group2);
-	// group3 = Page.Addgroup('Group2', "PodSizeMappings");
+	group3 = Page.Addgroup('Group2', "Advanced / Experimental");
+	group3.AddCheckbox('AllowRuntime', "Update pods without Restarting (Experimental)", "If enabled, settings take effect immediately instead of requiring a game restart. If you get weird pods, switch this off and restart the game once; then always restart the game client after making settings changes here.", ALLOW_RUNTIME, AllowRuntimeSaveHandler);	
+	
 	// CreatePodSizeMappingSliders(group3)
 
     page.ShowSettings();
@@ -80,6 +83,8 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 `MCM_API_BasicCheckboxSaveHandler(AffectResistanceSaveHandler, AFFECT_RESISTANCE)
 `MCM_API_BasicCheckboxSaveHandler(AffectXcomSaveHandler, AFFECT_XCOM)
 
+`MCM_API_BasicCheckboxSaveHandler(AllowRuntimeSaveHandler, ALLOW_RUNTIME)
+
 
 function LoadSavedSettings()
 {
@@ -96,7 +101,9 @@ function LoadSavedSettings()
     AFFECT_RESISTANCE = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.AFFECT_RESISTANCE, AFFECT_RESISTANCE);
     AFFECT_XCOM = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.AFFECT_XCOM, AFFECT_XCOM);
 	
-	`KvCLog("KVPS: Loaded:" @ ENCOUNTER_MULTIPLIER @ "," @ ENCOUNTER_MULTIPLIER_BEFORE @ "," @ IGNORE_SINGLE @ "," @ IGNORE_FIXED @ "," @ AFFECT_ALIENS @ "," @ AFFECT_LOST @ "," @ AFFECT_NEUTRAL @ "," @ AFFECT_RESISTANCE @ "," @ AFFECT_XCOM);
+    ALLOW_RUNTIME = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ALLOW_RUNTIME, ALLOW_RUNTIME);
+	
+	`KvCLog("KVPS: Loaded:" @ ENCOUNTER_MULTIPLIER @ "," @ ENCOUNTER_MULTIPLIER_BEFORE @ "," @ IGNORE_SINGLE @ "," @ IGNORE_FIXED @ "," @ AFFECT_ALIENS @ "," @ AFFECT_LOST @ "," @ AFFECT_NEUTRAL @ "," @ AFFECT_RESISTANCE @ "," @ AFFECT_XCOM @ ", " @ ALLOW_RUNTIME);
 	
 	// PodSizeMappings = 
 }
@@ -169,9 +176,9 @@ function SaveButtonClicked(MCM_API_SettingsPage Page)
 	local Kv_PS_UpdateArrays inst;
 	self.ConfigVersion = `MCM_CH_GetCompositeVersion();
     self.SaveConfig();
-	if(Page != none)
+	if(Page != none && ALLOW_RUNTIME)
 	{
-		`KvCLog("KVPS: SaveButtonClicked(), Page!= none");
+		`KvCLog("KVPS: SaveButtonClicked(), Page!= none, ALLOW_RUNTIME: " @ ALLOW_RUNTIME);
 		inst = new class'Kv_PS_UpdateArrays' ;
 		inst.UpdateEncountersArray();
 	}

@@ -63,6 +63,7 @@ static function bool IsBackupEncounter(ConfigurableEncounter Enc, optional bool 
 	return False;
 }
 
+/*
 // Return the backed up version of an Encounter by its EncounterID
 static function ConfigurableEncounter GetBackUpForEncounter(string QueryID, out int backupFound)
 {
@@ -87,6 +88,7 @@ static function ConfigurableEncounter GetBackUpForEncounter(string QueryID, out 
 	Enc.EncounterID = 'KVPSIgnore';
 	return Enc;
 }
+*/
 
 static function ConfigurableEncounter CreateBackupCopyOfEncounter(ConfigurableEncounter Enc)
 {
@@ -120,9 +122,7 @@ function UpdateEncountersArray()
 	local array<ConfigurableEncounter> NewEncounterArray, arrNewBackups, oldBackups;
 	local int i, oldMaxSpawnCount;
 	local int ENCOUNTER_MULTIPLIER;
-	local bool ENCOUNTER_MULTIPLIER_BEFORE, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE;
-	local int backupFound;
-	local bool firstRun;
+	local bool ENCOUNTER_MULTIPLIER_BEFORE, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, ALLOW_RUNTIME;
 	//local array<int> PodSizeMappings;
 	//local array<string> PodEncounterIDMappings;	
 	MissionManager = `TACTICALMISSIONMGR;
@@ -137,6 +137,7 @@ function UpdateEncountersArray()
 	AFFECT_XCOM = Settings.AFFECT_XCOM;
 	AFFECT_NEUTRAL = Settings.AFFECT_NEUTRAL;
 	AFFECT_RESISTANCE = Settings.AFFECT_RESISTANCE;
+	ALLOW_RUNTIME = Settings.ALLOW_RUNTIME;
 	// PodSizeMappings = Settings.PodSizeMappings;
 	// PodEncounterIDMappings = Settings.PodEncounterIDMappings;
 	
@@ -155,58 +156,26 @@ function UpdateEncountersArray()
 	// Reconstruct array of clean, unmodified Encounters from backups stored alongside modified Encounters in MissionManager.ConfigurableEncounters
 	// Discard modified Encounters
 	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters before any processing: " @ MissionManager.ConfigurableEncounters.Length);
-	/*
-	for(i = 0; i < MissionManager.ConfigurableEncounters.Length; ++i)
+	// First get existing backups in case this is an Nth run
+	if(ALLOW_RUNTIME) // only make encounter backups if ALLOW_RUNTIME mode is on
 	{
-		Enc = MissionManager.ConfigurableEncounters[i];
-		
-		if(IsBackupEncounter(Enc)) // Checking if an Encounter is a backup is a cheaper operation than retrieving a backup by ID.
+		for(i = 0; i < MissionManager.ConfigurableEncounters.Length; ++i)
 		{
-			// Shouldn't reach here on first run during game load
-			`KvCLog("KVPS: IsBackupEncounter: " @ Enc.EncounterID);
-			cleanEnc = RestoreBackupEncounter(Enc); // Get unmodified Encounter from Backup
-			NewEncounterArray.AddItem(cleanEnc);
-		}
-		else
-		{
-			// Get backup for this EncID
-			backupFound = 0;
-			cleanEnc = GetBackUpForEncounter(string(Enc.EncounterID), backupFound); 
-			`KvCLog("KVPS: cleanEnc, backupFound: " @ Enc.EncounterID @ ", " @ backupFound);
-			if(backupFound == 0)
+			Enc = MissionManager.ConfigurableEncounters[i];
+			// If Enc is a backup, get the clean version and put that in the NewEncounterArray
+			if(IsBackupEncounter(Enc)) // Checking if an Encounter is a backup is a cheaper operation than retrieving a backup by ID.
 			{
-				// This should only happen on first load of the game, or if another mod is adding Encounters dynamically
-				// If there's no backup for this encounter, this Encounter is new to us. Probably a fresh game load. 
-				// Make a backup and store it separately in arrNewBackups<> to be appended to MissionManager.ConfigurableEncounters later (after processing).
-				arrNewBackups.AddItem(CreateBackupCopyOfEncounter(Enc));
-				NewEncounterArray.AddItem(Enc);
-			}
-			else
-			{
-				// Get the unmodified encounter from the backup, we don't want to work on backups
-				cleanEnc = RestoreBackupEncounter(cleanEnc);
+				// Shouldn't reach here on first run during game load
+				`KvCLog("KVPS: IsBackupEncounter: " @ Enc.EncounterID);
+				cleanEnc = RestoreBackupEncounter(Enc); // Get unmodified Encounter from Backup
 				NewEncounterArray.AddItem(cleanEnc);
 			}
-		}
-	}
-	*/
-	// First get existing backups in case this is an Nth run
-	for(i = 0; i < MissionManager.ConfigurableEncounters.Length; ++i)
-	{
-		Enc = MissionManager.ConfigurableEncounters[i];
-		// If Enc is a backup, get the clean version and put that in the NewEncounterArray
-		if(IsBackupEncounter(Enc)) // Checking if an Encounter is a backup is a cheaper operation than retrieving a backup by ID.
-		{
-			// Shouldn't reach here on first run during game load
-			`KvCLog("KVPS: IsBackupEncounter: " @ Enc.EncounterID);
-			cleanEnc = RestoreBackupEncounter(Enc); // Get unmodified Encounter from Backup
-			NewEncounterArray.AddItem(cleanEnc);
 		}
 	}
 	`KvCLog("KVPS: Number of encounters in NewEncounterArray before any processing: " @ NewEncounterArray.Length);
 	if(NewEncounterArray.Length < 1)
 	{
-		// This is a first run on game load, no backups restored. Fill NewEncounterArray with clean encounters.
+		// This is a first run on game load, no backups restored (or ALLOW_RUNTIME is OFF). Fill NewEncounterArray with clean encounters.
 		// NewEncounterArray = MissionManager.ConfigurableEncounters; // Unsure if this assigns by reference or creates a copy. Let's just do another ugly loop instead.
 		for(i = 0; i < MissionManager.ConfigurableEncounters.Length; ++i)
 		{
@@ -214,7 +183,7 @@ function UpdateEncountersArray()
 		}
 	}
 	
-	// At this point NewEncounterArray should contain only fresh, unmodified encounters; either restored from backups or fresh at game start
+	// At this point NewEncounterArray should contain only fresh, unmodified encounters; either restored from backups or fresh at game start. If ALLOW_RUNTIME is off, this is not guaranteed; but this function should only happen once per game client load.
 	for(i = 0; i < NewEncounterArray.Length; ++i)
 	{
 		Enc = NewEncounterArray[i];
