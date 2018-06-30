@@ -2,12 +2,8 @@
 class Kv_PS_UpdateArrays extends Object config(Encounters);
 
 var Kv_PodSizes_Settings Settings;
-var Kv_PodSizes_DefaultPods DefaultPods;
-// Load a copy of the ConfigurableEncounters list from ini so we can restore from it later when we need to modify clean instances of the Encounter definitions
-//var config(Encounters) array<ConfigurableEncounter> DefaultPods;
+var Kv_PodSizes_DefaultPods DefaultPods;	// Load a copy of the ConfigurableEncounters list from ini so we can restore from it later when we need to modify clean instances of the Encounter definitions
 
-// TODO: Refactor this to support calling UpdateEncountersArray() multiple times without re-multiplying already-modified values. 
-// This would obviate needing to restart the game after making settings changes.
 
 static final function string ReplaceText(coerce string Text, coerce string Replace, coerce string With)
 {
@@ -67,32 +63,7 @@ static function bool IsBackupEncounter(ConfigurableEncounter Enc, optional bool 
 	return False;
 }
 
-/*
-// Return the backed up version of an Encounter by its EncounterID
-static function ConfigurableEncounter GetBackUpForEncounter(string QueryID, out int backupFound)
-{
-	local XComTacticalMissionManager MissionManager;
-	local ConfigurableEncounter Enc;
-	local int i;
-	local string BackupName, BackupNameDisabled;
-	MissionManager = `TACTICALMISSIONMGR;
-	backupFound = 0;
-	for(i = 0; i < MissionManager.ConfigurableEncounters.Length; ++i)
-	{
-		Enc = MissionManager.ConfigurableEncounters[i];
-		BackupName = QueryID $ "_KVPSBackup";
-		BackupNameDisabled = BackupName $ "_Disabled";
-		if(BackupName == QueryID || BackupNameDisabled == QueryID)
-		{
-			backupFound = 1;
-			return Enc;
-		}
-	}
-	`KvCLog("KVPS: No backup found for Encounter: " @ QueryID);
-	Enc.EncounterID = 'KVPSIgnore';
-	return Enc;
-}
-*/
+
 
 static function ConfigurableEncounter CreateBackupCopyOfEncounter(ConfigurableEncounter Enc)
 {
@@ -147,6 +118,7 @@ function UpdateEncountersArray()
 	// PodEncounterIDMappings = Settings.PodEncounterIDMappings;
 	
 	`KvCLog("KVPS: Config -- ENCOUNTER_MULTIPLIER: " @ Settings.ENCOUNTER_MULTIPLIER);
+	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters before any processing: " @ MissionManager.ConfigurableEncounters.Length);
 	/*
 	`KvCLog("KVPS: Pod Size Mappings -- Length: " @ PodSizeMappings.Length);
 	for(i = 0; i < PodSizeMappings.Length; ++i)
@@ -158,10 +130,10 @@ function UpdateEncountersArray()
 	}
 	*/
 
+	/*
 	// Reconstruct array of clean, unmodified Encounters from backups stored alongside modified Encounters in MissionManager.ConfigurableEncounters
 	// Discard modified Encounters
-	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters before any processing: " @ MissionManager.ConfigurableEncounters.Length);
-	/*
+	
 	// First get existing backups in case this is an Nth run
 	if(ALLOW_RUNTIME) // only make encounter backups if ALLOW_RUNTIME mode is on
 	{
@@ -191,9 +163,7 @@ function UpdateEncountersArray()
 	*/
 	
 	`KvCLog("KVPS: Number of encounters in DefaultPods.ConfigurableEncounters: " @ DefaultPods.ConfigurableEncounters.Length);
-	//`KvCLog("KVPS: Number of encounters in DefaultPods.ConfigurableEncounters: " @ DefaultPods.Length);
 	for(i = 0; i < DefaultPods.ConfigurableEncounters.Length; ++i)
-	//for(i = 0; i < DefaultPods.Length; ++i)
 	{
 		Enc = DefaultPods.ConfigurableEncounters[i];
 		`KvCLog("KVPS: DefaultPods: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
@@ -286,86 +256,24 @@ function UpdateEncountersArray()
 	
 	`KvCLog("KVPS: Number of encounters in NewEncounterArray after modifying: " @ MissionManager.ConfigurableEncounters.Length);
 	
+	MissionManager.ConfigurableEncounters.Length = 0; // Dump old Encounters array
+	/*
 	// Put the backups in first. Array order matters, and we want the backup-retriever to find them fast.
 	// Add backups with their spawn disabled to MissionManager.ConfigurableEncounters so that we can retrieve them again later next time this function is called.
-	MissionManager.ConfigurableEncounters.Length = 0; // Dump old Encounters array
-	//MissionManager.ConfigurableEncounters = arrNewBackups;
-	MissionManager.ConfigurableEncounters = NewEncounterArray;
+	MissionManager.ConfigurableEncounters = arrNewBackups;
 	
-	/*
 	// Add NewEncounterArray encounters to MissionManager.ConfigurableEncounters
 	for(i = 0; i < NewEncounterArray.Length; ++i)
 	{
 		MissionManager.ConfigurableEncounters.AddItem(NewEncounterArray[i]);
 	}
 	*/
+	MissionManager.ConfigurableEncounters = NewEncounterArray;
+	
 	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters after adding backups: " @ MissionManager.ConfigurableEncounters.Length);
 }
 
 
-	/* 
-	// ConfigurableEncounter from XGGameData.uc:
-	struct native ConfigurableEncounter
-	{
-		// The name of this encounter (used in conjunction with Mission triggers)
-		var name				EncounterID;
-		// A hard limit on the maximum number of group members that this encounter should contain
-		var int					MaxSpawnCount;
-		// If >0, this value overrides the Force Level for the next group to spawn.
-		var int					OffsetForceLevel;
-		// If >0, this value overrides the AlertLevel for the next group to spawn.
-		var int					OffsetAlertLevel;
-		// The name of an Inclusion/Exclusion list of character types that are permitted to spawn as part of this encounter as a group leader.
-		var Name				EncounterLeaderSpawnList;
-		// The name of an Inclusion/Exclusion list of character types that are permitted to spawn as part of this encounter as a group follower.
-		var Name				EncounterFollowerSpawnList;
-		// When constructing this encounter, the leader (index 0) and followers will be selected first from these template names; 
-		// the remainder will be filled out using normal encounter construction rules.
-		var array<Name>			ForceSpawnTemplateNames;
-		// This encounter will only be available if the current Alert Level is greater than or equal to this value.
-		var int					MinRequiredAlertLevel;
-		// This encounter will only be available if the current Alert Level is less than or equal to this value.
-		var int					MaxRequiredAlertLevel;
-		// This encounter will only be available if the current Force Level is greater than or equal to this value.
-		var int					MinRequiredForceLevel;
-		// This encounter will only be available if the current Force Level is less than or equal to this value.
-		var int					MaxRequiredForceLevel;
-		// If configured as a reinforcement encounter, this is the number of turns until the group spawns for this encounter.
-		var int					ReinforcementCountdown;
-		// If true, this encounter group will not drop loot.
-		var bool				bGroupDoesNotAwardLoot;
-		// The team that this encounter group should spawn into.
-		var ETeam				TeamToSpawnInto;
-		// Whether to skip soldier VO
-		var bool				SkipSoldierVO;
-		// Prevent certain units (mainly VIPs) from scampering.
-		var bool				bDisableScamper;
-		// If true, this group will not automatically spawn if it is selected at the start of a map.  
-		// Used for any groups that will be dynamically spawned later in the mission.
-		var bool				bDisableSpawn;
-		structdefaultproperties
-		{
-			MaxSpawnCount = 10
-			ReinforcementCountdown = 1
-			MinRequiredAlertLevel = 0
-			MaxRequiredAlertLevel = 1000
-			MinRequiredForceLevel = 0
-			MaxRequiredForceLevel = 20
-			TeamToSpawnInto = eTeam_Alien
-		}
-	};	
-	*/
-
 defaultproperties
 (
-	ENCOUNTER_MULTIPLIER = 1.0f;
-
-	IGNORE_SINGLE = True;
-	IGNORE_FIXED = True;
-
-	AFFECT_ALIENS = True;
-	AFFECT_LOST = False;
-	AFFECT_XCOM = False;
-	AFFECT_NEUTRAL = False;
-	AFFECT_RESISTANCE = False;
 )
