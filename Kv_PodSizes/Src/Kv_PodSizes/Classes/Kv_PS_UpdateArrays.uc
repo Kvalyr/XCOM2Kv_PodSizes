@@ -1,6 +1,10 @@
-class Kv_PS_UpdateArrays extends Object;// config(Kv_PodSizes_Settings);
+//class Kv_PS_UpdateArrays extends Object;// config(Kv_PodSizes_Settings);
+class Kv_PS_UpdateArrays extends Object config(Encounters);
 
 var Kv_PodSizes_Settings Settings;
+var Kv_PodSizes_DefaultPods DefaultPods;
+// Load a copy of the ConfigurableEncounters list from ini so we can restore from it later when we need to modify clean instances of the Encounter definitions
+//var config(Encounters) array<ConfigurableEncounter> DefaultPods;
 
 // TODO: Refactor this to support calling UpdateEncountersArray() multiple times without re-multiplying already-modified values. 
 // This would obviate needing to restart the game after making settings changes.
@@ -128,6 +132,7 @@ function UpdateEncountersArray()
 	MissionManager = `TACTICALMISSIONMGR;
 	
 	Settings = new class'Kv_PodSizes_Settings';
+	DefaultPods = new class'Kv_PodSizes_DefaultPods';
 	ENCOUNTER_MULTIPLIER = Settings.ENCOUNTER_MULTIPLIER;
 	ENCOUNTER_MULTIPLIER_BEFORE = Settings.ENCOUNTER_MULTIPLIER_BEFORE;
 	IGNORE_SINGLE = Settings.IGNORE_SINGLE;
@@ -156,6 +161,7 @@ function UpdateEncountersArray()
 	// Reconstruct array of clean, unmodified Encounters from backups stored alongside modified Encounters in MissionManager.ConfigurableEncounters
 	// Discard modified Encounters
 	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters before any processing: " @ MissionManager.ConfigurableEncounters.Length);
+	/*
 	// First get existing backups in case this is an Nth run
 	if(ALLOW_RUNTIME) // only make encounter backups if ALLOW_RUNTIME mode is on
 	{
@@ -182,12 +188,23 @@ function UpdateEncountersArray()
 			NewEncounterArray.AddItem(MissionManager.ConfigurableEncounters[i]);
 		}
 	}
+	*/
+	
+	`KvCLog("KVPS: Number of encounters in DefaultPods.ConfigurableEncounters: " @ DefaultPods.ConfigurableEncounters.Length);
+	//`KvCLog("KVPS: Number of encounters in DefaultPods.ConfigurableEncounters: " @ DefaultPods.Length);
+	for(i = 0; i < DefaultPods.ConfigurableEncounters.Length; ++i)
+	//for(i = 0; i < DefaultPods.Length; ++i)
+	{
+		Enc = DefaultPods.ConfigurableEncounters[i];
+		`KvCLog("KVPS: DefaultPods: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
+		NewEncounterArray.AddItem(Enc);
+	}
 	
 	// At this point NewEncounterArray should contain only fresh, unmodified encounters; either restored from backups or fresh at game start. If ALLOW_RUNTIME is off, this is not guaranteed; but this function should only happen once per game client load.
 	for(i = 0; i < NewEncounterArray.Length; ++i)
 	{
 		Enc = NewEncounterArray[i];
-		arrNewBackups.AddItem(CreateBackupCopyOfEncounter(Enc)); // Create a backup and put it in arrNewBackups
+		// arrNewBackups.AddItem(CreateBackupCopyOfEncounter(Enc)); // Create a backup and put it in arrNewBackups
 		oldMaxSpawnCount = Enc.MaxSpawnCount;
 		
 		if(ENCOUNTER_MULTIPLIER_BEFORE)
@@ -272,15 +289,19 @@ function UpdateEncountersArray()
 	// Put the backups in first. Array order matters, and we want the backup-retriever to find them fast.
 	// Add backups with their spawn disabled to MissionManager.ConfigurableEncounters so that we can retrieve them again later next time this function is called.
 	MissionManager.ConfigurableEncounters.Length = 0; // Dump old Encounters array
-	MissionManager.ConfigurableEncounters = arrNewBackups;
-		
+	//MissionManager.ConfigurableEncounters = arrNewBackups;
+	MissionManager.ConfigurableEncounters = NewEncounterArray;
+	
+	/*
 	// Add NewEncounterArray encounters to MissionManager.ConfigurableEncounters
 	for(i = 0; i < NewEncounterArray.Length; ++i)
 	{
 		MissionManager.ConfigurableEncounters.AddItem(NewEncounterArray[i]);
 	}
+	*/
 	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters after adding backups: " @ MissionManager.ConfigurableEncounters.Length);
 }
+
 
 	/* 
 	// ConfigurableEncounter from XGGameData.uc:

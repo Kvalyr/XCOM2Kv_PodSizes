@@ -34,6 +34,9 @@
     <Content Include="Src\Kv_PodSizes\Classes\Kv_Common.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\Kv_PodSizes\Classes\Kv_PodSizes_DefaultPods.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\Kv_PodSizes\Classes\Kv_PodSizes_Settings.uc">
       <SubType>Content</SubType>
     </Content>
