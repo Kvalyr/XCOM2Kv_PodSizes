@@ -1,4 +1,7 @@
 ﻿Configurable Pod Sizes by Kvalyr
+
+NOTE: Load the game as far as the main menu once after installing the mod, quit; then relaunch the game. This will ensure it works. A future version will fix this.
+
 === FAQ ===
 Q: What are pods?
 A: Pods are the 'groups' of enemies you encounter in tacical missions. Normally they can range in size from a single unit to a dozen, depending on difficulty and the type of enemy units in that pod.
@@ -11,10 +14,13 @@ Q: How does this mod work?
 A: Most pod modificationss work through adjustments to DefaultEncounters/XComEncounters.ini, with painstaking, manual editing by the modder to make targeted changes. This mod instead looks at what pods have been defined in the ini files and loaded by the game, modifies the data dynamically in-memory (instead of in .ini files) according to your options.
 
 Q: Why does this need the highlander? Other mods that modify pods don't.
-A: Dynamically modifying the Encounter definitions was made by possible by changes in the Community Highlander. Those changes give modders better access to things in game memory than Firaxis' original code allows us to do.
+A: Dynamically modifying the Encounter definitions was made by possible by changes in the Community Highlander. Those changes give modders better access to things in game memory than Firaxis' original code allows us.
 
 Q: Will this mess with my ini files?
-A: No. This mod doesn't write any new data to ini files. It just looks at what has been loaded already and modifies it in-memory. When you exit the game, everything goes back to defaults (or back to whatever pods you've got from another mod).
+A: No. This mod just looks at what has been loaded already and modifies it in-memory. When you exit the game, everything goes back to defaults (or back to whatever pods you've got from another mod).
+
+Q: I set the multiplier to 10 (!!) and I'm still just seeing pods with 1 Sectoid and 4 Troopers. Why?
+A: The number of a given type of unit that can spawn in a pod is capped in EncounterLists.ini. Make sure "Adjust Spawn Lists" is enabled if you want really huge pods of enemies.
 
 === Requirements ===
 * Requires WOTC.

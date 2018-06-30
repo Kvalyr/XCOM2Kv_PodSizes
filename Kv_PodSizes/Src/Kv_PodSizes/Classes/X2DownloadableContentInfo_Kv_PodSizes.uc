@@ -27,11 +27,12 @@ static event OnPostTemplatesCreated()
 	local Kv_PS_UpdateArrays inst;
 	local Kv_PodSizes_DefaultPods defaultPods;
 	local XComTacticalMissionManager MissionManager;
+	`KvCLog("KVPS: OnPostTemplatesCreated()");
+	
 	MissionManager = `TACTICALMISSIONMGR;
 	defaultPods = new class'Kv_PodSizes_DefaultPods' ;
-	defaultPods.SaveDefaultPods(MissionManager.ConfigurableEncounters);
+	defaultPods.SaveDefaultPods(MissionManager.ConfigurableEncounters, MissionManager.SpawnDistributionLists);
 	
-	`KvCLog("KVPS: OnPostTemplatesCreated()");
 	inst = new class'Kv_PS_UpdateArrays' ;
 	inst.UpdateEncountersArray();
 }

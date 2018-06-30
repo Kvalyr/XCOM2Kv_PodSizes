@@ -1,4 +1,3 @@
-//class Kv_PS_UpdateArrays extends Object;// config(Kv_PodSizes_Settings);
 class Kv_PS_UpdateArrays extends Object config(Encounters);
 
 var Kv_PodSizes_Settings Settings;
@@ -9,11 +8,14 @@ var Kv_PodSizes_DefaultPods DefaultPods;	// Load a copy of the ConfigurableEncou
 function UpdateEncountersArray()
 {
 	local XComTacticalMissionManager MissionManager;
-	local ConfigurableEncounter Enc, cleanEnc;
-	local array<ConfigurableEncounter> NewEncounterArray, arrNewBackups, oldBackups;
-	local int i, oldMaxSpawnCount;
+	local ConfigurableEncounter Enc;//, cleanEnc;
+	local SpawnDistributionList DistList;
+	local array<ConfigurableEncounter> NewEncounterArray;//, arrNewBackups;
+	local array<SpawnDistributionList> NewSpawnDistributionLists;
+	//local SpawnDistributionListEntry SpawnEntry;
+	local int i, j, oldMaxSpawnCount;
 	local int ENCOUNTER_MULTIPLIER;
-	local bool ENCOUNTER_MULTIPLIER_BEFORE, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, VERBOSE_LOGGING;//, ALLOW_RUNTIME;
+	local bool ENCOUNTER_MULTIPLIER_BEFORE, ADJUST_SPAWNLISTS, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, VERBOSE_LOGGING;//, ALLOW_RUNTIME;
 	//local array<int> PodSizeMappings;
 	//local array<string> PodEncounterIDMappings;	
 	MissionManager = `TACTICALMISSIONMGR;
@@ -22,6 +24,7 @@ function UpdateEncountersArray()
 	DefaultPods = new class'Kv_PodSizes_DefaultPods';
 	ENCOUNTER_MULTIPLIER = Settings.ENCOUNTER_MULTIPLIER;
 	ENCOUNTER_MULTIPLIER_BEFORE = Settings.ENCOUNTER_MULTIPLIER_BEFORE;
+	ADJUST_SPAWNLISTS = Settings.ADJUST_SPAWNLISTS;
 	IGNORE_SINGLE = Settings.IGNORE_SINGLE;
 	IGNORE_FIXED = Settings.IGNORE_FIXED;
 	AFFECT_ALIENS = Settings.AFFECT_ALIENS;
@@ -79,6 +82,38 @@ function UpdateEncountersArray()
 	}
 	*/
 	
+	if(ADJUST_SPAWNLISTS)
+	{
+		if(VERBOSE_LOGGING)
+		{
+			`KvCLog("KVPS: Number of encounters in DefaultPods.SpawnDistributionLists: " @ DefaultPods.SpawnDistributionLists.Length);
+		}
+		for(i = 0; i < DefaultPods.SpawnDistributionLists.Length; ++i)
+		{
+			DistList = DefaultPods.SpawnDistributionLists[i];
+			if(VERBOSE_LOGGING)
+			{
+				`KvCLog("KVPS: DefaultPods: " @ DistList.ListID @ ", SpawnDistribution.Length: " @ DistList.SpawnDistribution.Length);
+			}
+			for(j = 0; j < DistList.SpawnDistribution.Length; ++j)
+			{
+				// SpawnEntry = DistList.SpawnDistribution[j];
+				if(!IGNORE_SINGLE || DistList.SpawnDistribution[j].MaxCharactersPerGroup > 1)
+				{
+					if(VERBOSE_LOGGING)
+					{
+						`KvCLog("KVPS: SpawnEntry: " @ DistList.SpawnDistribution[j].Template @ ", oldMaxCharactersPerGroup: " @ DistList.SpawnDistribution[j].MaxCharactersPerGroup @ ", New MaxCharactersPerGroup:" @  Round(DistList.SpawnDistribution[j].MaxCharactersPerGroup * ENCOUNTER_MULTIPLIER));
+					}
+					DistList.SpawnDistribution[j].MaxCharactersPerGroup  = Round(DistList.SpawnDistribution[j].MaxCharactersPerGroup * ENCOUNTER_MULTIPLIER);
+					// DistList.SpawnDistribution[j] = SpawnEntry; // Probably not necessary? I forget if this accesses by reference or not
+				}
+			}
+			NewSpawnDistributionLists.AddItem(DistList);
+		}
+		MissionManager.SpawnDistributionLists.Length = 0; // Dump old SpawnDistributionLists array
+		MissionManager.SpawnDistributionLists = NewSpawnDistributionLists;
+	}
+
 	`KvCLog("KVPS: Number of encounters in DefaultPods.ConfigurableEncounters: " @ DefaultPods.ConfigurableEncounters.Length);
 	for(i = 0; i < DefaultPods.ConfigurableEncounters.Length; ++i)
 	{
@@ -90,6 +125,7 @@ function UpdateEncountersArray()
 		NewEncounterArray.AddItem(Enc);
 	}
 	
+	// TODO: These loops can be combined
 	// At this point NewEncounterArray should contain only fresh, unmodified encounters; either restored from backups or fresh at game start. If ALLOW_RUNTIME is off, this is not guaranteed; but this function should only happen once per game client load.
 	for(i = 0; i < NewEncounterArray.Length; ++i)
 	{

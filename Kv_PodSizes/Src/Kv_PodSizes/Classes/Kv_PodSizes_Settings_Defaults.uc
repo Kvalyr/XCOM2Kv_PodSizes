@@ -2,6 +2,7 @@ class Kv_PodSizes_Settings_Defaults extends Object config(Kv_PodSizes_Defaults);
 
 var config float ENCOUNTER_MULTIPLIER;
 var config bool ENCOUNTER_MULTIPLIER_BEFORE;
+var config bool ADJUST_SPAWNLISTS;
 
 //var config bool ALLOW_RUNTIME;
 var config bool VERBOSE_LOGGING;

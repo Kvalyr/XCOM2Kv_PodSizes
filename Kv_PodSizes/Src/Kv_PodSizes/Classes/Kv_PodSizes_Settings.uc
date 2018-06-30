@@ -2,6 +2,7 @@ class Kv_PodSizes_Settings extends UIScreenListener config(Kv_PodSizes_Settings)
 
 var config float ENCOUNTER_MULTIPLIER;
 var config bool ENCOUNTER_MULTIPLIER_BEFORE;
+var config bool ADJUST_SPAWNLISTS;
 
 //var config bool ALLOW_RUNTIME;
 var config bool VERBOSE_LOGGING;
@@ -52,7 +53,8 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 	// Name, Text, Tooltip, Min, Max, Step, Init Value, Save Handler
 	// Group 1
 	group1.AddSlider('MainMultiplier', 	"Global Pod Size Multiplier", "This multiplier is applied to pod sizes in general. If you want 25% bigger pods, set it to 1.25. 100% bigger pods: 2.0; etc.", 0, 10, 0.01, ENCOUNTER_MULTIPLIER, GlobalMultSaveHandler);	
-	group1.AddCheckbox('MainMultiplierBefore', "Global Multiplier Before Others", "Enable if 'Global Pod Size Multiplier' should be applied to pod sizes before other checks like PodSizeMappings", ENCOUNTER_MULTIPLIER_BEFORE, GlobalMultBeforeSaveHandler);	
+	group1.AddCheckbox('AdjustSpawnLists', "Adjust Spawn Lists", "If enabled, spawn lists will be affected by the multiplier as well. Ordinarily the number of units of a given type that can be spawn within a pod is capped. Enable this setting if you want to allow huge pods of units to spawn.", ADJUST_SPAWNLISTS, AdjustSpawnsSaveHandler);	
+	//group1.AddCheckbox('MainMultiplierBefore', "Global Multiplier Before Others", "Enable if 'Global Pod Size Multiplier' should be applied to pod sizes before other checks like PodSizeMappings", ENCOUNTER_MULTIPLIER_BEFORE, GlobalMultBeforeSaveHandler);	
 	
 	group2 = Page.Addgroup('Group2', "Filters");
 	group2.AddCheckbox('IgnoreSingle', "Ignore Single-Unit Pods", "Ignore Pods that normally only have a single unit and MaxSpawnCount of 1", IGNORE_SINGLE, IgnoreSingleSaveHandler);	
@@ -75,6 +77,7 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 
 `MCM_API_BasicSliderSaveHandler(GlobalMultSaveHandler, ENCOUNTER_MULTIPLIER)
 `MCM_API_BasicCheckboxSaveHandler(GlobalMultBeforeSaveHandler, ENCOUNTER_MULTIPLIER_BEFORE)
+`MCM_API_BasicCheckboxSaveHandler(AdjustSpawnsSaveHandler, ADJUST_SPAWNLISTS)
 
 `MCM_API_BasicCheckboxSaveHandler(IgnoreSingleSaveHandler, IGNORE_SINGLE)
 `MCM_API_BasicCheckboxSaveHandler(IgnoreFixedSaveHandler, IGNORE_FIXED)
@@ -94,6 +97,7 @@ function LoadSavedSettings()
 	`KvCLog("KVPS: LoadSavedSettings()");
     ENCOUNTER_MULTIPLIER = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ENCOUNTER_MULTIPLIER, ENCOUNTER_MULTIPLIER);
     ENCOUNTER_MULTIPLIER_BEFORE = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ENCOUNTER_MULTIPLIER_BEFORE, ENCOUNTER_MULTIPLIER_BEFORE);
+    ADJUST_SPAWNLISTS = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ADJUST_SPAWNLISTS, ADJUST_SPAWNLISTS);
     
 	IGNORE_SINGLE = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.IGNORE_SINGLE, IGNORE_SINGLE);
     IGNORE_FIXED = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.IGNORE_FIXED, IGNORE_FIXED);
