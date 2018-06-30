@@ -40,7 +40,8 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 {
     // Build the settings UI
     local MCM_API_SettingsPage page;
-    local MCM_API_SettingsGroup group1, group2, group3;
+    local MCM_API_SettingsGroup group1, group2, group3, group0;
+	local Kv_PodSizes_DefaultPods DefaultPods;
 
     LoadSavedSettings();
 
@@ -49,6 +50,13 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     page.SetSaveHandler(SaveButtonClicked);
 
 	group1 = Page.AddGroup('Group1', "Pod Size");
+	
+	DefaultPods = new class'Kv_PodSizes_DefaultPods';
+	if(!DefaultPods.ReadyToUse())
+	{
+		group0 = Page.AddGroup('Group0', "Reload XCOM2 once to Finish Installation of this Mod");
+		group0.AddLabel('WarningLabel', "!-- RESTART XCOM2 ONCE TO FINISH INSTALLATION --!", "You must restart the game client once after loading this mod for the first time before it will have any effect on the game.");
+	}
     
 	// Name, Text, Tooltip, Min, Max, Step, Init Value, Save Handler
 	// Group 1

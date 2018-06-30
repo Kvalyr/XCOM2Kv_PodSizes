@@ -25,3 +25,12 @@ function SaveDefaultPods(array<ConfigurableEncounter> NewConfigurableEncounters,
 	}
 	SaveConfig();
 }
+
+function bool ReadyToUse()
+{
+	if(SpawnDistributionLists.Length < 1 || ConfigurableEncounters.Length < 1)
+	{
+		return False;
+	}
+	return True;
+}
