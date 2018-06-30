@@ -5,90 +5,6 @@ var Kv_PodSizes_Settings Settings;
 var Kv_PodSizes_DefaultPods DefaultPods;	// Load a copy of the ConfigurableEncounters list from ini so we can restore from it later when we need to modify clean instances of the Encounter definitions
 
 
-static final function string ReplaceText(coerce string Text, coerce string Replace, coerce string With)
-{
-	// This function replaces any occurance of a substring Replace inside a string Text with the string With.
-	// From: https://wiki.beyondunreal.com/Legacy:Useful_String_Functions
-	local int i;
-	local string Output;
- 	i = InStr(Text, Replace);
-	while (i != -1) {	
-		Output = Output $ Left(Text, i) $ With;
-		Text = Mid(Text, i + Len(Replace));	
-		i = InStr(Text, Replace);
-	}
-	Output = Output $ Text;
-	return Output;
-}
-
-// Restore a backed-up Encounter to its original functional state.
-static function ConfigurableEncounter RestoreBackupEncounter(ConfigurableEncounter Enc)
-{
-	local string EncounterID;
-	EncounterID = string(Enc.EncounterID);
-	if(InStr(EncounterID, "_KVPSBackup") >= 0)
-	{
-		`KvCLog("KVPS: Restoring backup encounter: " @ Enc.EncounterID);
-		if(InStr(EncounterID, "_KVPSBackup_Disabled") >= 0)
-		{
-			// Encounter had spawn already disabled when we backed it up. Keep that.
-			Enc.EncounterID = name( ReplaceText(EncounterID, "_KVPSBackup_Disabled", "") );
-			Enc.bDisableSpawn = True;
-		}
-		else
-		{
-			// Return to being spawnable
-			Enc.EncounterID = name( ReplaceText(EncounterID, "_KVPSBackup", "") );
-			Enc.bDisableSpawn = False;
-		}
-	}
-	else
-	{
-		`KvCLog("KVPS: RestoreBackupEncounter :: Not a backup!: " @ Enc.EncounterID);
-	}
-	return Enc;
-}
-
-// Is this ConfigurableEncounter a backup we made during previous adjustments?
-static function bool IsBackupEncounter(ConfigurableEncounter Enc, optional bool bIsDisabledSpawn=False)
-{
-	if(InStr(string(Enc.EncounterID), "_KVPSBackup") >= 0) // || InStr(string(Enc.EncounterID), "_KVPSBackup_Disabled") >= 0
-	{
-		if(bIsDisabledSpawn)
-		{
-			return InStr(string(Enc.EncounterID), "_KVPSBackup_Disabled") >= 0;
-		}
-		return True;
-	}
-	return False;
-}
-
-
-
-static function ConfigurableEncounter CreateBackupCopyOfEncounter(ConfigurableEncounter Enc)
-{
-	//bDisableSpawn
-	local ConfigurableEncounter backupEnc;
-	local name backupID;
-	local string DisableSpawnIndicator;
-
-	`KvCLog("KVPS: Creating backup of Encounter: " @ Enc.EncounterID);
-	
-	// If bDisableSpawn is already True for this encounter we should note that in the backupID.
-	DisableSpawnIndicator = "";
-	if(Enc.bDisableSpawn)
-	{
-		DisableSpawnIndicator = "_Disabled";
-	}
-	
-	backupID = name( string(Enc.EncounterID) $ "_KVPSBackup" $ DisableSpawnIndicator);
-	backupEnc.EncounterID = backupID;
-	backupEnc.MaxSpawnCount = Enc.MaxSpawnCount;
-	backupEnc.bDisableSpawn = True;
-	// We don't need to backup other values unless this mod starts modifying them.
-	return backupEnc;
-}
-
 // Requires Community Highlander - Encounter * ConfigurableEncounters are const vars in non-Highlander XComTacticalMissionManager
 function UpdateEncountersArray()
 {
@@ -97,7 +13,7 @@ function UpdateEncountersArray()
 	local array<ConfigurableEncounter> NewEncounterArray, arrNewBackups, oldBackups;
 	local int i, oldMaxSpawnCount;
 	local int ENCOUNTER_MULTIPLIER;
-	local bool ENCOUNTER_MULTIPLIER_BEFORE, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, ALLOW_RUNTIME;
+	local bool ENCOUNTER_MULTIPLIER_BEFORE, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, VERBOSE_LOGGING;//, ALLOW_RUNTIME;
 	//local array<int> PodSizeMappings;
 	//local array<string> PodEncounterIDMappings;	
 	MissionManager = `TACTICALMISSIONMGR;
@@ -113,7 +29,8 @@ function UpdateEncountersArray()
 	AFFECT_XCOM = Settings.AFFECT_XCOM;
 	AFFECT_NEUTRAL = Settings.AFFECT_NEUTRAL;
 	AFFECT_RESISTANCE = Settings.AFFECT_RESISTANCE;
-	ALLOW_RUNTIME = Settings.ALLOW_RUNTIME;
+	//ALLOW_RUNTIME = Settings.ALLOW_RUNTIME;
+	VERBOSE_LOGGING = Settings.VERBOSE_LOGGING;
 	// PodSizeMappings = Settings.PodSizeMappings;
 	// PodEncounterIDMappings = Settings.PodEncounterIDMappings;
 	
@@ -166,7 +83,10 @@ function UpdateEncountersArray()
 	for(i = 0; i < DefaultPods.ConfigurableEncounters.Length; ++i)
 	{
 		Enc = DefaultPods.ConfigurableEncounters[i];
-		`KvCLog("KVPS: DefaultPods: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
+		if(VERBOSE_LOGGING)
+		{
+			`KvCLog("KVPS: DefaultPods: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
+		}
 		NewEncounterArray.AddItem(Enc);
 	}
 	
@@ -180,7 +100,10 @@ function UpdateEncountersArray()
 		if(ENCOUNTER_MULTIPLIER_BEFORE)
 		{
 			Enc.MaxSpawnCount = Round(Enc.MaxSpawnCount * ENCOUNTER_MULTIPLIER);
-			`KvCLog("KVPS: Applying ENCOUNTER_MULTIPLIER early: " @ Enc.EncounterID @ " - oldMaxSpawnCount, MaxSpawnCount: " @ oldMaxSpawnCount @ ", " @ Enc.MaxSpawnCount);
+			if(VERBOSE_LOGGING)
+			{			
+				`KvCLog("KVPS: Applying ENCOUNTER_MULTIPLIER early: " @ Enc.EncounterID @ " - oldMaxSpawnCount, MaxSpawnCount: " @ oldMaxSpawnCount @ ", " @ Enc.MaxSpawnCount);
+			}
 		}
 		
 		/*
@@ -250,11 +173,16 @@ function UpdateEncountersArray()
 			Enc.MaxSpawnCount = Round(Enc.MaxSpawnCount * ENCOUNTER_MULTIPLIER);
 		}
 		NewEncounterArray[i] = Enc;
-		`KvCLog("KVPS: Encounter: " @ Enc.EncounterID @ " - oldMaxSpawnCount, New MaxSpawnCount: " @ oldMaxSpawnCount @ ", " @ Enc.MaxSpawnCount);
+		if(VERBOSE_LOGGING)
+		{
+			`KvCLog("KVPS: Encounter: " @ Enc.EncounterID @ " - oldMaxSpawnCount, New MaxSpawnCount: " @ oldMaxSpawnCount @ ", " @ Enc.MaxSpawnCount);
+		}
 	}
 	// Finished modifying clean Encounters. Encounters in NewEncounterArray are now a mixture of clean and dirty depending on filters applied during processing.
-	
-	`KvCLog("KVPS: Number of encounters in NewEncounterArray after modifying: " @ MissionManager.ConfigurableEncounters.Length);
+	if(VERBOSE_LOGGING)
+	{
+		`KvCLog("KVPS: Number of encounters in NewEncounterArray after modifying: " @ MissionManager.ConfigurableEncounters.Length);
+	}
 	
 	MissionManager.ConfigurableEncounters.Length = 0; // Dump old Encounters array
 	/*
@@ -267,10 +195,15 @@ function UpdateEncountersArray()
 	{
 		MissionManager.ConfigurableEncounters.AddItem(NewEncounterArray[i]);
 	}
+	
 	*/
 	MissionManager.ConfigurableEncounters = NewEncounterArray;
 	
-	`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters after adding backups: " @ MissionManager.ConfigurableEncounters.Length);
+	if(VERBOSE_LOGGING)
+	{
+		`KvCLog("KVPS: Number of encounters in MissionManager.ConfigurableEncounters after processing: " @ MissionManager.ConfigurableEncounters.Length);
+	}
+	`KvCLog("KVPS: Finished updating Encounters: ");
 }
 
 

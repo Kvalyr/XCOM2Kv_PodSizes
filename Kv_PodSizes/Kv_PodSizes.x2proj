@@ -46,6 +46,9 @@
     <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_UpdateArrays.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\Kv_PodSizes\Classes\Kv_PS_Utils.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\Kv_PodSizes\Classes\X2DownloadableContentInfo_Kv_PodSizes.uc">
       <SubType>Content</SubType>
     </Content>

@@ -8,13 +8,13 @@ A: Each pod has a list of enemies that it can contain (from Troopers to Andromed
 All pods have a 'MaxSpawnCount' that determines how many enemies should spawn for that pod. This mod lets you scale the 'MaxSpawnCount' for all pods in the game by a multiplier. e.g.; Set the multiplier to 1.5 in the mod options to get 50% bigger pods. It also includes filters, so that you can ignore pods designed to only spawn 1 unit ever (such as bosses), or ignore pods that spawn friendly resistance units on terror missions.
 
 Q: How does this mod work?
-A: Most pod modificationss work through adjustments to DefaultEncounters/XComEncounters.ini, with painstaking, manual editing by the modder to make targeted changes. This mod instead looks at what pods have been defined in the ini files and loaded by the game, backs them up in memory and then modifies the data dynamically according to your options.
+A: Most pod modificationss work through adjustments to DefaultEncounters/XComEncounters.ini, with painstaking, manual editing by the modder to make targeted changes. This mod instead looks at what pods have been defined in the ini files and loaded by the game, modifies the data dynamically in-memory (instead of in .ini files) according to your options.
 
 Q: Why does this need the highlander? Other mods that modify pods don't.
 A: Dynamically modifying the Encounter definitions was made by possible by changes in the Community Highlander. Those changes give modders better access to things in game memory than Firaxis' original code allows us to do.
 
 Q: Will this mess with my ini files?
-A: No. This mod doesn't write any new data to ini files. It just looks at what has been loaded already and modifies it in-memory. When you exit the game, everything goes back to defaults.
+A: No. This mod doesn't write any new data to ini files. It just looks at what has been loaded already and modifies it in-memory. When you exit the game, everything goes back to defaults (or back to whatever pods you've got from another mod).
 
 === Requirements ===
 * Requires WOTC.
@@ -34,9 +34,6 @@ If you experience crashes, double-check that the Community Highlander is install
 * Adjust values using the Mod Configuration Menu (link above). 
 
 * This mod won't have any perceptible effect on your game unless you change some of its default values.
-
-* If you get weird pods or weird spawning behaviour in general, go to the options menu and switch OFF "Update pods without Restarting (Experimental)"; then restart the game once.
-  * When this setting is off, you will need to restart the game client to make any settings changes for this mod take effect.
 
 === Known Issues: ===
 * PodSizeMappings in this mod's .ini currently have no effect. Feature will be restored later.

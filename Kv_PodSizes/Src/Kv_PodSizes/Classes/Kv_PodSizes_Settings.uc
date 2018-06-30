@@ -3,7 +3,8 @@ class Kv_PodSizes_Settings extends UIScreenListener config(Kv_PodSizes_Settings)
 var config float ENCOUNTER_MULTIPLIER;
 var config bool ENCOUNTER_MULTIPLIER_BEFORE;
 
-var config bool ALLOW_RUNTIME;
+//var config bool ALLOW_RUNTIME;
+var config bool VERBOSE_LOGGING;
 
 var config bool IGNORE_SINGLE;
 var config bool IGNORE_FIXED;
@@ -103,10 +104,13 @@ function LoadSavedSettings()
     AFFECT_RESISTANCE = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.AFFECT_RESISTANCE, AFFECT_RESISTANCE);
     AFFECT_XCOM = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.AFFECT_XCOM, AFFECT_XCOM);
 	
-    ALLOW_RUNTIME = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ALLOW_RUNTIME, ALLOW_RUNTIME);
+    //ALLOW_RUNTIME = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.ALLOW_RUNTIME, ALLOW_RUNTIME);
     VERBOSE_LOGGING = `MCM_CH_GetValue(class'Kv_PodSizes_Settings_Defaults'.default.VERBOSE_LOGGING, VERBOSE_LOGGING);
 	
-	`KvCLog("KVPS: Loaded:" @ ENCOUNTER_MULTIPLIER @ "," @ ENCOUNTER_MULTIPLIER_BEFORE @ "," @ IGNORE_SINGLE @ "," @ IGNORE_FIXED @ "," @ AFFECT_ALIENS @ "," @ AFFECT_LOST @ "," @ AFFECT_NEUTRAL @ "," @ AFFECT_RESISTANCE @ "," @ AFFECT_XCOM @ ", " @ ALLOW_RUNTIME);
+	if(VERBOSE_LOGGING)
+	{
+		`KvCLog("KVPS: Loaded:" @ ENCOUNTER_MULTIPLIER @ "," @ ENCOUNTER_MULTIPLIER_BEFORE @ "," @ IGNORE_SINGLE @ "," @ IGNORE_FIXED @ "," @ AFFECT_ALIENS @ "," @ AFFECT_LOST @ "," @ AFFECT_NEUTRAL @ "," @ AFFECT_RESISTANCE @ "," @ AFFECT_XCOM @ ", " @ VERBOSE_LOGGING);
+	}
 	
 	// PodSizeMappings = 
 }
@@ -181,7 +185,11 @@ function SaveButtonClicked(MCM_API_SettingsPage Page)
     self.SaveConfig();
 	if(Page != none)// && ALLOW_RUNTIME)
 	{
-		`KvCLog("KVPS: SaveButtonClicked(), Page!= none, ALLOW_RUNTIME: " @ ALLOW_RUNTIME);
+		if(VERBOSE_LOGGING)
+		{
+			//`KvCLog("KVPS: SaveButtonClicked(), Page!= none, ALLOW_RUNTIME: " @ ALLOW_RUNTIME);
+			`KvCLog("KVPS: SaveButtonClicked(), Page!= none: ");
+		}
 		inst = new class'Kv_PS_UpdateArrays' ;
 		inst.UpdateEncountersArray();
 	}
@@ -189,10 +197,16 @@ function SaveButtonClicked(MCM_API_SettingsPage Page)
 
 function EnsureConfigExists()
 {
-	`KvCLog("KVPS: EnsureConfigExists");
+	if(VERBOSE_LOGGING)
+	{
+		`KvCLog("KVPS: EnsureConfigExists");
+	}
     if(ConfigVersion == 0)
     {
-		`KvCLog("KVPS: EnsureConfigExists ConfigVersion is 0");
+		if(VERBOSE_LOGGING)
+		{
+			`KvCLog("KVPS: EnsureConfigExists ConfigVersion is 0");
+		}
         LoadSavedSettings();
         SaveButtonClicked(none);
     }
@@ -201,4 +215,5 @@ function EnsureConfigExists()
 defaultproperties
 {
 	MAX_PODSIZE_MAPPINGS=20
+	VERBOSE_LOGGING = False
 }
