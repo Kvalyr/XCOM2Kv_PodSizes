@@ -12,9 +12,9 @@ function UpdateEncountersArray()
 	local SpawnDistributionList DistList;
 	local array<ConfigurableEncounter> NewEncounterArray;//, arrNewBackups;
 	local array<SpawnDistributionList> NewSpawnDistributionLists;
-	//local SpawnDistributionListEntry SpawnEntry;
-	local int i, j, oldMaxSpawnCount;
-	local int ENCOUNTER_MULTIPLIER;
+	local SpawnDistributionListEntry SpawnEntry;
+	local int i, j, oldMaxSpawnCount, newMaxCharactersPerGroup;
+	local float ENCOUNTER_MULTIPLIER;
 	local bool ENCOUNTER_MULTIPLIER_BEFORE, ADJUST_SPAWNLISTS, IGNORE_SINGLE, IGNORE_FIXED, AFFECT_ALIENS, AFFECT_LOST, AFFECT_XCOM, AFFECT_NEUTRAL, AFFECT_RESISTANCE, VERBOSE_LOGGING;//, ALLOW_RUNTIME;
 	//local array<int> PodSizeMappings;
 	//local array<string> PodEncounterIDMappings;	
@@ -93,19 +93,20 @@ function UpdateEncountersArray()
 			DistList = DefaultPods.SpawnDistributionLists[i];
 			if(VERBOSE_LOGGING)
 			{
-				`KvCLog("KVPS: DefaultPods: " @ DistList.ListID @ ", SpawnDistribution.Length: " @ DistList.SpawnDistribution.Length);
+				`KvCLog("KVPS: DefaultPods - SpawnDistribution: " @ DistList.ListID @ ", SpawnDistribution.Length: " @ DistList.SpawnDistribution.Length);
 			}
 			for(j = 0; j < DistList.SpawnDistribution.Length; ++j)
 			{
-				// SpawnEntry = DistList.SpawnDistribution[j];
-				if(!IGNORE_SINGLE || DistList.SpawnDistribution[j].MaxCharactersPerGroup > 1)
+				SpawnEntry = DistList.SpawnDistribution[j];
+				if(!IGNORE_SINGLE || SpawnEntry.MaxCharactersPerGroup > 1)
 				{
+					newMaxCharactersPerGroup = Round(float(SpawnEntry.MaxCharactersPerGroup) * ENCOUNTER_MULTIPLIER);
 					if(VERBOSE_LOGGING)
 					{
-						`KvCLog("KVPS: SpawnEntry: " @ DistList.SpawnDistribution[j].Template @ ", oldMaxCharactersPerGroup: " @ DistList.SpawnDistribution[j].MaxCharactersPerGroup @ ", New MaxCharactersPerGroup:" @  Round(DistList.SpawnDistribution[j].MaxCharactersPerGroup * ENCOUNTER_MULTIPLIER));
+						`KvCLog("KVPS: SpawnEntry: " @ SpawnEntry.Template @ ", oldMaxCharactersPerGroup: " @ SpawnEntry.MaxCharactersPerGroup @ ", New MaxCharactersPerGroup:" @ newMaxCharactersPerGroup);
 					}
-					DistList.SpawnDistribution[j].MaxCharactersPerGroup  = Round(DistList.SpawnDistribution[j].MaxCharactersPerGroup * ENCOUNTER_MULTIPLIER);
-					// DistList.SpawnDistribution[j] = SpawnEntry; // Probably not necessary? I forget if this accesses by reference or not
+					SpawnEntry.MaxCharactersPerGroup = newMaxCharactersPerGroup;
+					DistList.SpawnDistribution[j] = SpawnEntry; // Probably not necessary? I forget if this accesses by reference or not
 				}
 			}
 			NewSpawnDistributionLists.AddItem(DistList);
@@ -120,7 +121,7 @@ function UpdateEncountersArray()
 		Enc = DefaultPods.ConfigurableEncounters[i];
 		if(VERBOSE_LOGGING)
 		{
-			`KvCLog("KVPS: DefaultPods: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
+			`KvCLog("KVPS: DefaultPods - ConfigurableEncounter: " @ Enc.EncounterID @ ", MaxSpawnCount: " @ Enc.MaxSpawnCount @ ", Spawn Disabled: " @ Enc.bDisableSpawn);
 		}
 		NewEncounterArray.AddItem(Enc);
 	}
@@ -135,7 +136,7 @@ function UpdateEncountersArray()
 		
 		if(ENCOUNTER_MULTIPLIER_BEFORE)
 		{
-			Enc.MaxSpawnCount = Round(Enc.MaxSpawnCount * ENCOUNTER_MULTIPLIER);
+			Enc.MaxSpawnCount = Round(float(Enc.MaxSpawnCount) * ENCOUNTER_MULTIPLIER);
 			if(VERBOSE_LOGGING)
 			{			
 				`KvCLog("KVPS: Applying ENCOUNTER_MULTIPLIER early: " @ Enc.EncounterID @ " - oldMaxSpawnCount, MaxSpawnCount: " @ oldMaxSpawnCount @ ", " @ Enc.MaxSpawnCount);
